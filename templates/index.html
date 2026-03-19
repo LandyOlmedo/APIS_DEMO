@@ -1,0 +1,29 @@
+$def with (data, estado)
+
+<html>
+<head>
+    <title>Demo de Sensores</title>
+</head>
+<body>  
+
+<h1>Demo de Sensores</h1>
+
+<p>Data del sensor:</p>
+<h2>$data</h2>
+
+<h1>Estado actual del LED: $estado</h1>
+
+<form method="POST">
+    <input type="hidden" name="estado" value="true">
+    <button type="submit">ENCENDER</button>
+</form>
+
+<br>
+
+<form method="POST">
+    <input type="hidden" name="estado" value="false">
+    <button type="submit">APAGAR</button>
+</form>
+
+</body>
+</html>

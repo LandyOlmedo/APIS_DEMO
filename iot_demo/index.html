@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sensores en tiempo real</title>
+  <style>
+    body {
+      font-family: Verdana, sans-serif;
+      margin: 32px;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    .card {
+      max-width: 520px;
+      background: #ffffff;
+      border: 1px solid #dbe3ee;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin: 10px 0;
+    }
+
+    .valor {
+      font-weight: 700;
+      color: #0f766e;
+    }
+  </style>
+</head>
+<body onload="getDatos()">
+  <div class="card">
+    <h1>Datos de los Sensores</h1>
+    <p>Humedad: <span id="humedad" class="valor">Cargando datos...</span></p>
+    <p>Temperatura: <span id="temperatura" class="valor">Cargando datos...</span></p>
+  </div>
+
+  <!-- Polling cada 5s -->
+  <script src="sensores2.js"></script>
+
+  <!-- Si prefieres tiempo real con EventSource, comenta sensores2.js y usa esta línea -->
+  <!-- <script src="sensores.js"></script> -->
+</body>
+</html>
