@@ -2,3 +2,16 @@
 __pycache__
 .venv/
 .env
+.env.local
+*.db
+*.sqlite3
+.pytest_cache/
+.DS_Store
+*.egg-info/
+dist/
+build/
+.idea/
+*.swp
+*.swo
+*~
+.vscode/settings.json
