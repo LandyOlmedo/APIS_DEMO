@@ -15,7 +15,7 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     """Inicializa la base de datos al iniciar la aplicación"""
-    from init_db import init_database
+    from .init_db import init_database
     init_database()
 
 
