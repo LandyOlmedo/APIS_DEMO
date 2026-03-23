@@ -5,13 +5,10 @@ __pycache__
 .env.local
 *.db
 *.sqlite3
-.pytest_cache/
 .DS_Store
+.pytest_cache/
+.vscode/
 *.egg-info/
 dist/
 build/
-.idea/
-*.swp
-*.swo
-*~
-.vscode/settings.json
+.coverage

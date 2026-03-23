@@ -1,11 +1,22 @@
 from fastapi import FastAPI, Query
 import sqlite3
+import os
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
 
+# Ruta de la base de datos
+DB_PATH = os.path.join(os.path.dirname(__file__), "agendadb.sqlite3")
+
 app = FastAPI()
+
+# Inicializar base de datos al startup
+@app.on_event("startup")
+async def startup_event():
+    """Inicializa la base de datos al iniciar la aplicación"""
+    from init_db import init_database
+    init_database()
 
 
 @app.get(
@@ -143,7 +154,7 @@ async def get_contactos(
         )
 
     try:
-        conn = sqlite3.connect("agendadb.sqlite3")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM contactos")
         total = cursor.fetchone()[0]
@@ -238,7 +249,7 @@ async def get_contactos(
 )
 async def get_contacto(id_contacto: int):
     try:
-        conn = sqlite3.connect("agendadb.sqlite3")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         cursor.execute(
