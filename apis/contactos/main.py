@@ -1,10 +1,42 @@
 from fastapi import FastAPI, Query, Body
+from pydantic import BaseModel, Field
 import sqlite3
 import os
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from typing import Optional
+
+# Modelos Pydantic para validación y documentación
+class CrearContacto(BaseModel):
+    nombre: str = Field(..., example="Juan Pérez", min_length=1, max_length=100)
+    telefono: str = Field(..., example="5551234567", min_length=7, max_length=20)
+    email: str = Field(..., example="juan@example.com")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "nombre": "Juan Pérez",
+                "telefono": "5551234567",
+                "email": "juan@example.com"
+            }
+        }
+
+class ActualizarContacto(BaseModel):
+    id_contacto: int = Field(..., example=1, gt=0)
+    nombre: Optional[str] = Field(None, example="Juan Pérez Actualizado", min_length=1, max_length=100)
+    telefono: Optional[str] = Field(None, example="5559999999", min_length=7, max_length=20)
+    email: Optional[str] = Field(None, example="juan.nuevo@example.com")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id_contacto": 1,
+                "nombre": "Juan Pérez Actualizado",
+                "telefono": "5559999999",
+                "email": "juan.nuevo@example.com"
+            }
+        }
 
 # Ruta de la base de datos
 DB_PATH = os.path.join(os.path.dirname(__file__), "agendadb.sqlite3")
@@ -457,25 +489,14 @@ async def buscar_contacto(
         }
     }
 )
-async def crear_contacto(data: dict = Body(...)):
-    if not all(key in data for key in ["nombre", "telefono", "email"]):
-        return JSONResponse(
-            status_code=400,
-            content={
-                "table": "contactos",
-                "item": {},
-                "datetime": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                "message": "Faltan campos requeridos: nombre, telefono, email"
-            }
-        )
-    
+async def crear_contacto(data: CrearContacto):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         cursor.execute(
             "INSERT INTO contactos (nombre, telefono, email) VALUES (?, ?, ?)",
-            (data["nombre"], data["telefono"], data["email"])
+            (data.nombre, data.telefono, data.email)
         )
         
         conn.commit()
@@ -484,9 +505,9 @@ async def crear_contacto(data: dict = Body(...)):
         
         contacto = {
             "id_contacto": new_id,
-            "nombre": data["nombre"],
-            "telefono": data["telefono"],
-            "email": data["email"]
+            "nombre": data.nombre,
+            "telefono": data.telefono,
+            "email": data.email
         }
         
         return JSONResponse(
@@ -551,24 +572,13 @@ async def crear_contacto(data: dict = Body(...)):
         }
     }
 )
-async def actualizar_contacto(data: dict = Body(...)):
-    if "id_contacto" not in data:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "table": "contactos",
-                "item": {},
-                "datetime": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                "message": "El campo 'id_contacto' es obligatorio"
-            }
-        )
-    
+async def actualizar_contacto(data: ActualizarContacto):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Verificar que el contacto existe
-        cursor.execute("SELECT * FROM contactos WHERE id_contacto = ?", (data["id_contacto"],))
+        cursor.execute("SELECT * FROM contactos WHERE id_contacto = ?", (data.id_contacto,))
         if cursor.fetchone() is None:
             conn.close()
             return JSONResponse(
@@ -585,15 +595,15 @@ async def actualizar_contacto(data: dict = Body(...)):
         campos = []
         valores = []
         
-        if "nombre" in data:
+        if data.nombre is not None:
             campos.append("nombre = ?")
-            valores.append(data["nombre"])
-        if "telefono" in data:
+            valores.append(data.nombre)
+        if data.telefono is not None:
             campos.append("telefono = ?")
-            valores.append(data["telefono"])
-        if "email" in data:
+            valores.append(data.telefono)
+        if data.email is not None:
             campos.append("email = ?")
-            valores.append(data["email"])
+            valores.append(data.email)
         
         if not campos:
             conn.close()
@@ -607,7 +617,7 @@ async def actualizar_contacto(data: dict = Body(...)):
                 }
             )
         
-        valores.append(data["id_contacto"])
+        valores.append(data.id_contacto)
         query = f"UPDATE contactos SET {', '.join(campos)} WHERE id_contacto = ?"
         
         cursor.execute(query, valores)
@@ -616,7 +626,7 @@ async def actualizar_contacto(data: dict = Body(...)):
         # Obtener el contacto actualizado
         cursor.execute(
             "SELECT id_contacto, nombre, telefono, email FROM contactos WHERE id_contacto = ?",
-            (data["id_contacto"],)
+            (data.id_contacto,)
         )
         row = cursor.fetchone()
         conn.close()

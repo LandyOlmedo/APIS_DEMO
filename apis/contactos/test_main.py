@@ -200,37 +200,31 @@ class TestCrearContactoEndpoint:
         assert "id_contacto" in data["item"]
     
     def test_crear_contacto_sin_nombre(self):
-        """Test: POST /v1/contacto sin nombre regresa error 400"""
+        """Test: POST /v1/contacto sin nombre regresa error 422 (validación)"""
         contacto_incompleto = {
             "telefono": "5551234567",
             "email": "test@example.com"
         }
         response = client.post("/v1/contacto", json=contacto_incompleto)
-        assert response.status_code == 400
-        data = response.json()
-        assert "nombre" in data["message"].lower()
+        assert response.status_code == 422  # Pydantic devuelve 422 para errores de validación
     
     def test_crear_contacto_sin_telefono(self):
-        """Test: POST /v1/contacto sin teléfono regresa error 400"""
+        """Test: POST /v1/contacto sin teléfono regresa error 422 (validación)"""
         contacto_incompleto = {
             "nombre": "Test",
             "email": "test@example.com"
         }
         response = client.post("/v1/contacto", json=contacto_incompleto)
-        assert response.status_code == 400
-        data = response.json()
-        assert "telefono" in data["message"].lower()
+        assert response.status_code == 422
     
     def test_crear_contacto_sin_email(self):
-        """Test: POST /v1/contacto sin email regresa error 400"""
+        """Test: POST /v1/contacto sin email regresa error 422 (validación)"""
         contacto_incompleto = {
             "nombre": "Test",
             "telefono": "5551234567"
         }
         response = client.post("/v1/contacto", json=contacto_incompleto)
-        assert response.status_code == 400
-        data = response.json()
-        assert "email" in data["message"].lower()
+        assert response.status_code == 422
     
     def test_crear_contacto_campos_vacios(self):
         """Test: POST /v1/contacto con campos vacíos"""
@@ -240,9 +234,8 @@ class TestCrearContactoEndpoint:
             "email": ""
         }
         response = client.post("/v1/contacto", json=contacto)
-        # La API debería aceptarlo pero es mejor que valide
-        # De momento solo verificamos que responda
-        assert response.status_code in [201, 400]
+        # Campos vacíos fallan validación de min_length
+        assert response.status_code == 422
 
 
 class TestActualizarContactoEndpoint:
@@ -278,9 +271,8 @@ class TestActualizarContactoEndpoint:
             "email": "test@example.com"
         }
         response = client.put("/v1/contacto", json=actualizar)
-        assert response.status_code == 400
-        data = response.json()
-        assert "id_contacto" in data["message"].lower()
+        assert response.status_code == 422  # Pydantic valida que id_contacto es requerido
+
     
     def test_actualizar_contacto_id_no_existe(self):
         """Test: PUT /v1/contacto con ID inexistente regresa error 400"""
