@@ -190,7 +190,7 @@ class TestCrearContactoEndpoint:
             "telefono": "5551234567",
             "email": "test@example.com"
         }
-        response = client.post("/v1/contacto", json=nuevo_contacto)
+        response = client.post("/v1/contacto", data=nuevo_contacto)
         assert response.status_code == 201
         data = response.json()
         assert data["table"] == "contactos"
@@ -205,7 +205,7 @@ class TestCrearContactoEndpoint:
             "telefono": "5551234567",
             "email": "test@example.com"
         }
-        response = client.post("/v1/contacto", json=contacto_incompleto)
+        response = client.post("/v1/contacto", data=contacto_incompleto)
         assert response.status_code == 422  # Pydantic devuelve 422 para errores de validación
     
     def test_crear_contacto_sin_telefono(self):
@@ -214,7 +214,7 @@ class TestCrearContactoEndpoint:
             "nombre": "Test",
             "email": "test@example.com"
         }
-        response = client.post("/v1/contacto", json=contacto_incompleto)
+        response = client.post("/v1/contacto", data=contacto_incompleto)
         assert response.status_code == 422
     
     def test_crear_contacto_sin_email(self):
@@ -223,7 +223,7 @@ class TestCrearContactoEndpoint:
             "nombre": "Test",
             "telefono": "5551234567"
         }
-        response = client.post("/v1/contacto", json=contacto_incompleto)
+        response = client.post("/v1/contacto", data=contacto_incompleto)
         assert response.status_code == 422
     
     def test_crear_contacto_campos_vacios(self):
@@ -233,7 +233,7 @@ class TestCrearContactoEndpoint:
             "telefono": "",
             "email": ""
         }
-        response = client.post("/v1/contacto", json=contacto)
+        response = client.post("/v1/contacto", data=contacto)
         # Campos vacíos fallan validación de min_length
         assert response.status_code == 422
 
@@ -249,7 +249,7 @@ class TestActualizarContactoEndpoint:
             "telefono": "5559999999",
             "email": "update@example.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo)
+        create_response = client.post("/v1/contacto", data=nuevo)
         contacto_id = create_response.json()["item"]["id_contacto"]
         
         # Luego actualizarlo
@@ -258,7 +258,7 @@ class TestActualizarContactoEndpoint:
             "nombre": "Test Actualizado",
             "email": "actualizado@example.com"
         }
-        response = client.put("/v1/contacto", json=actualizar)
+        response = client.put("/v1/contacto", data=actualizar)
         assert response.status_code == 200
         data = response.json()
         assert data["item"]["nombre"] == "Test Actualizado"
@@ -270,7 +270,7 @@ class TestActualizarContactoEndpoint:
             "nombre": "Test",
             "email": "test@example.com"
         }
-        response = client.put("/v1/contacto", json=actualizar)
+        response = client.put("/v1/contacto", data=actualizar)
         assert response.status_code == 422  # Pydantic valida que id_contacto es requerido
 
     
@@ -280,7 +280,7 @@ class TestActualizarContactoEndpoint:
             "id_contacto": 99999,
             "nombre": "Test"
         }
-        response = client.put("/v1/contacto", json=actualizar)
+        response = client.put("/v1/contacto", data=actualizar)
         assert response.status_code == 400
         data = response.json()
         assert "no existe" in data["message"].lower()
@@ -290,7 +290,7 @@ class TestActualizarContactoEndpoint:
         actualizar = {
             "id_contacto": 1
         }
-        response = client.put("/v1/contacto", json=actualizar)
+        response = client.put("/v1/contacto", data=actualizar)
         assert response.status_code == 400
         data = response.json()
         assert "campo" in data["message"].lower()
@@ -303,7 +303,7 @@ class TestActualizarContactoEndpoint:
             "telefono": "5558888888",
             "email": "solo@example.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo)
+        create_response = client.post("/v1/contacto", data=nuevo)
         contacto_id = create_response.json()["item"]["id_contacto"]
         
         # Actualizar solo nombre
@@ -311,7 +311,7 @@ class TestActualizarContactoEndpoint:
             "id_contacto": contacto_id,
             "nombre": "Nombre Actualizado"
         }
-        response = client.put("/v1/contacto", json=actualizar)
+        response = client.put("/v1/contacto", data=actualizar)
         assert response.status_code == 200
         data = response.json()
         assert data["item"]["nombre"] == "Nombre Actualizado"
@@ -328,7 +328,7 @@ class TestEliminarContactoEndpoint:
             "telefono": "5557777777",
             "email": "eliminar@example.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo)
+        create_response = client.post("/v1/contacto", data=nuevo)
         contacto_id = create_response.json()["item"]["id_contacto"]
         
         # Eliminarlo
@@ -358,7 +358,7 @@ class TestEliminarContactoEndpoint:
             "telefono": "5556666666",
             "email": "verif@example.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo)
+        create_response = client.post("/v1/contacto", data=nuevo)
         contacto_id = create_response.json()["item"]["id_contacto"]
         
         # Eliminar
@@ -382,7 +382,7 @@ class TestIntegracion:
             "telefono": "5551111111",
             "email": "juan@test.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo_contacto)
+        create_response = client.post("/v1/contacto", data=nuevo_contacto)
         assert create_response.status_code == 201
         contacto_id = create_response.json()["item"]["id_contacto"]
         
@@ -396,7 +396,7 @@ class TestIntegracion:
             "id_contacto": contacto_id,
             "nombre": "Juan Prueba Actualizado"
         }
-        update_response = client.put("/v1/contacto", json=actualizar)
+        update_response = client.put("/v1/contacto", data=actualizar)
         assert update_response.status_code == 200
         assert update_response.json()["item"]["nombre"] == "Juan Prueba Actualizado"
         
@@ -411,7 +411,7 @@ class TestIntegracion:
             "telefono": "5552222222",
             "email": "carlos@test.com"
         }
-        create_response = client.post("/v1/contacto", json=nuevo_contacto)
+        create_response = client.post("/v1/contacto", data=nuevo_contacto)
         assert create_response.status_code == 201
         
         # Buscar por nombre

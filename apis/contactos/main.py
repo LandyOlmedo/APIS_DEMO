@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI, Query, Body, Form
 from pydantic import BaseModel, Field
 import sqlite3
 import os
@@ -489,14 +489,18 @@ async def buscar_contacto(
         }
     }
 )
-async def crear_contacto(data: CrearContacto):
+async def crear_contacto(
+    nombre: str = Form(..., min_length=1, max_length=100, example="Juan Pérez"),
+    telefono: str = Form(..., min_length=7, max_length=20, example="5551234567"),
+    email: str = Form(..., example="juan@example.com")
+):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         cursor.execute(
             "INSERT INTO contactos (nombre, telefono, email) VALUES (?, ?, ?)",
-            (data.nombre, data.telefono, data.email)
+            (nombre, telefono, email)
         )
         
         conn.commit()
@@ -505,9 +509,9 @@ async def crear_contacto(data: CrearContacto):
         
         contacto = {
             "id_contacto": new_id,
-            "nombre": data.nombre,
-            "telefono": data.telefono,
-            "email": data.email
+            "nombre": nombre,
+            "telefono": telefono,
+            "email": email
         }
         
         return JSONResponse(
@@ -572,13 +576,18 @@ async def crear_contacto(data: CrearContacto):
         }
     }
 )
-async def actualizar_contacto(data: ActualizarContacto):
+async def actualizar_contacto(
+    id_contacto: int = Form(..., gt=0, example=1),
+    nombre: Optional[str] = Form(None, min_length=1, max_length=100, example="Juan Pérez Actualizado"),
+    telefono: Optional[str] = Form(None, min_length=7, max_length=20, example="5559999999"),
+    email: Optional[str] = Form(None, example="juan.nuevo@example.com")
+):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Verificar que el contacto existe
-        cursor.execute("SELECT * FROM contactos WHERE id_contacto = ?", (data.id_contacto,))
+        cursor.execute("SELECT * FROM contactos WHERE id_contacto = ?", (id_contacto,))
         if cursor.fetchone() is None:
             conn.close()
             return JSONResponse(
@@ -595,15 +604,15 @@ async def actualizar_contacto(data: ActualizarContacto):
         campos = []
         valores = []
         
-        if data.nombre is not None:
+        if nombre is not None:
             campos.append("nombre = ?")
-            valores.append(data.nombre)
-        if data.telefono is not None:
+            valores.append(nombre)
+        if telefono is not None:
             campos.append("telefono = ?")
-            valores.append(data.telefono)
-        if data.email is not None:
+            valores.append(telefono)
+        if email is not None:
             campos.append("email = ?")
-            valores.append(data.email)
+            valores.append(email)
         
         if not campos:
             conn.close()
@@ -617,7 +626,7 @@ async def actualizar_contacto(data: ActualizarContacto):
                 }
             )
         
-        valores.append(data.id_contacto)
+        valores.append(id_contacto)
         query = f"UPDATE contactos SET {', '.join(campos)} WHERE id_contacto = ?"
         
         cursor.execute(query, valores)
@@ -626,7 +635,7 @@ async def actualizar_contacto(data: ActualizarContacto):
         # Obtener el contacto actualizado
         cursor.execute(
             "SELECT id_contacto, nombre, telefono, email FROM contactos WHERE id_contacto = ?",
-            (data.id_contacto,)
+            (id_contacto,)
         )
         row = cursor.fetchone()
         conn.close()
