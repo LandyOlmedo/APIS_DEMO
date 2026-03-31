@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Body
 import sqlite3
 import os
 from fastapi import HTTPException
@@ -452,7 +452,7 @@ async def buscar_contacto(
         }
     }
 )
-async def crear_contacto(data: dict):
+async def crear_contacto(data: dict = Body(...)):
     if not all(key in data for key in ["nombre", "telefono", "email"]):
         return JSONResponse(
             status_code=400,
@@ -546,7 +546,7 @@ async def crear_contacto(data: dict):
         }
     }
 )
-async def actualizar_contacto(data: dict):
+async def actualizar_contacto(data: dict = Body(...)):
     if "id_contacto" not in data:
         return JSONResponse(
             status_code=400,
