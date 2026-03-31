@@ -15,7 +15,12 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     """Inicializa la base de datos al iniciar la aplicación"""
-    from apis.contactos.init_db import init_database
+    try:
+        # Intenta importar como si estuvieras en la raíz del proyecto (Render)
+        from apis.contactos.init_db import init_database
+    except ModuleNotFoundError:
+        # Si no funciona, intenta importar como si estuvieras en el directorio actual (desarrollo local)
+        from init_db import init_database
     init_database()
 
 
