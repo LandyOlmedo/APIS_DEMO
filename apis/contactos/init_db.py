@@ -1,7 +1,9 @@
 import sqlite3
 import os
+import csv
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "agendadb.sqlite3")
+CSV_PATH = os.path.join(os.path.dirname(__file__), "data.csv")
 
 def init_database():
     """Inicializa la base de datos y crea la tabla contactos"""
@@ -10,7 +12,7 @@ def init_database():
     
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS contactos (
-            id_contacto INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_contacto INTEGER PRIMARY KEY,
             nombre TEXT NOT NULL,
             telefono TEXT NOT NULL,
             email TEXT NOT NULL
@@ -21,32 +23,29 @@ def init_database():
     count = cursor.fetchone()[0]
     
     if count == 0:
-        print("100 registros")
-        nombres = [
-            "Juan", "María", "Pedro", "Ana", "Luis", "Carmen", "José", "Laura", 
-            "Carlos", "Elena", "Miguel", "Sara", "Antonio", "Lucía", "Francisco",
-            "Isabel", "Manuel", "Patricia", "David", "Marta"
-        ]
-        
-        apellidos = [
-            "García", "Rodríguez", "González", "Fernández", "López", "Martínez",
-            "Sánchez", "Pérez", "Martín", "Gómez"
-        ]
-        
-        contactos = []
-        for i in range(1, 101):
-            nombre = f"{nombres[i % len(nombres)]} {apellidos[i % len(apellidos)]}"
-            telefono = f"{5550000 + i:010d}"
-            email = f"contacto{i}@example.com"
-            contactos.append((nombre, telefono, email))
-        
-        cursor.executemany(
-            "INSERT INTO contactos (nombre, telefono, email) VALUES (?, ?, ?)",
-            contactos
-        )
-        
-        conn.commit()
-        print(f"✓ {len(contactos)} registros insertados correctamente")
+        try:
+            contactos = []
+            with open(CSV_PATH, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    contactos.append((
+                        int(row['id_contacto']),
+                        row['nombre'],
+                        row['telefono'],
+                        row['email']
+                    ))
+            
+            cursor.executemany(
+                "INSERT INTO contactos (id_contacto, nombre, telefono, email) VALUES (?, ?, ?, ?)",
+                contactos
+            )
+            
+            conn.commit()
+            print(f"✓ {len(contactos)} registros insertados correctamente desde CSV")
+        except FileNotFoundError:
+            print(f"⚠ Error: El archivo CSV no se encontró en {CSV_PATH}")
+        except Exception as e:
+            print(f"⚠ Error al cargar CSV: {e}")
     else:
         print(f"La base de datos ya contiene {count} registros")
     
